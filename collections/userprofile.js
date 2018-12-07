@@ -5,7 +5,7 @@ var ObjectId = mongoose.Schema.Types.ObjectId;
 //creating Schema
 const UserProfileSchema = new Schema({
   user_id: String,
-  dob: {type: Date},
+  dob: {type: String},
   mobile_no: {type: Number}
 });
 

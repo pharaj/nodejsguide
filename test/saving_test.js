@@ -1,78 +1,98 @@
-const assert = require('assert');
 const User = require('../collections/users');
 const UserProfile = require('../collections/userprofile');
+const mongoose = require('mongoose');
 
-//describing tests
-describe('saving records', function(){
 
-  //creating test
-  it('saving records to db', function(done){
+var userRecord = [{
+  first_name: "Abc",
+  email: 'abc@gmail.com',
+  last_name: 'cba',
+  password: 'abcd',
+  dob: '05-08-1980',
+  mobile_no: 74556548
+}, {
+  first_name: "Def",
+  email: 'def@gmail.com',
+  last_name: 'fed',
+  password: 'efgh',
+  dob: '01-01-1993',
+  mobile_no: 1233456
+}, {
+  first_name: "Ghi",
+  email: 'ghi@gmail.com',
+  last_name: 'ihg',
+  password: 'ijkl',
+  dob: '02-02-1990',
+  mobile_no: 2564488
+}, {
+  first_name: "Jkl",
+  email: 'jkl@gmail.com',
+  last_name: 'lkj',
+  password: 'mnop',
+  dob: '03-03-2000',
+  mobile_no: 3254896
+}, {
+  first_name: "Mno",
+  email: 'mno@gmail.com',
+  last_name: 'onm',
+  password: 'qrst',
+  dob: '04-04-1998',
+  mobile_no: 41224453
+}];
 
-    //creating records for both collections
-    var userRecord = [{
-      first_name: "Abc",
-      email: 'abc@gmail.com',
-      last_name: 'cba',
-      password: 'abcd',
-      dob: 05-08-1999,
-      mobile_no: 74556548
-    }, {
-      first_name: "Def",
-      email: 'def@gmail.com',
-      last_name: 'fed',
-      password: 'efgh',
-      dob: 01-01-1800,
-      mobile_no: 1233456
-    }, {
-      first_name: "Ghi",
-      email: 'ghi@gmail.com',
-      last_name: 'ihg',
-      password: 'ijkl',
-      dob: 02-02-1200,
-      mobile_no: 2564488
-    }, {
-      first_name: "Jkl",
-      email: 'jkl@gmail.com',
-      last_name: 'lkj',
-      password: 'mnop',
-      dob: 03-03-1300,
-      mobile_no: 3254896
-    }, {
-      first_name: "Mno",
-      email: 'mno@gmail.com',
-      last_name: 'onm',
-      password: 'qrst',
-      dob: 04-04-1400,
-      mobile_no: 41224453
-    }];
 
-    var userArr = [];
-    var userProfileArr = [];
 
-    for(var i=0; i<userRecord.length; i++){
-      //user collection saving
-      var new_user={
-        first_name: userRecord[i].first_name,
-        email: userRecord[i].email,
-        last_name: userRecord[i].last_name,
-        password: userRecord[i].password
-      }
-      userArr[i] = new User(new_user);
-      userArr[i].save().then(function(data){
-        assert(userArr[i].isNew === false);
-      });
+function savingData(callback){
+    userRecord.forEach((data)=>{
+      User.findOne({email: data.email}).then(function(result){
+        if(result){
+          console.log("user Already saved********");
+        } else {
+          var new_user={
+            first_name: data.first_name,
+            email: data.email,
+            last_name: data.last_name,
+            password: data.password
+          }
+          var user_data = new User(new_user)
+           .save(new_user).then((response)=>{
+              var new_userProfile = {
+                user_id: response._id,
+                dob: data.dob,
+                mobile_no: data.mobile_no
+              }
+              var profile = new UserProfile(new_userProfile)
+              profile.save(new_userProfile);
+          })
+        }
+      })
+    })
 
-      //userProfile collection saving
-      var new_userProfile = {
-        user_id: userArr[i].id,
-        dob: userRecord[i].dob,
-        mobile_no: userRecord[i].mobile_no
-      }
-      userProfileArr[i] = new UserProfile(new_userProfile);
-      userProfileArr[i].save();
-    }
-    done();
+    callback();
+  }
 
-  });
+savingData(deleteAge);
 
-});
+
+var ageArr = [];
+async function deleteAge(){
+  var allData =  await UserProfile.find({});
+  allData.forEach((data)=>{
+   age = Math.floor((Date.now() - new Date(data.dob))/1000/60/60/24/365);
+   ageArr.push(age);
+   if(age>25){
+     User.findOneAndDelete({_id: data.user_id}).then(function(){
+       console.log('deleted');
+     })
+   }else{
+     console.log('age is less than 25')
+   }
+  })
+  console.log(ageArr);
+
+  var total_age = 0;
+  ageArr.forEach(function(a){
+    total_age += a;
+  })
+  console.log(Math.floor(total_age/allData.length));
+}
